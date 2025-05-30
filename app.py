@@ -5,8 +5,6 @@ import matplotlib.pyplot as plt
 from ta.trend import SMAIndicator, MACD
 from ta.volatility import BollingerBands
 from ta.momentum import RSIIndicator
-import os
-
 from utils.finviz_data import get_finviz_stats
 from utils.polygon_data import get_polygon_price
 
@@ -21,7 +19,7 @@ st.sidebar.header("🔍 Screener Filters")
 min_pe = st.sidebar.slider("Max P/E", 1, 100, 40)
 min_rsi = st.sidebar.slider("Min RSI", 0, 100, 30)
 max_pb = st.sidebar.slider("Max Price/Book", 0.5, 20.0, 5.0)
-polygon_api_key = st.sidebar.text_input("Polygon.io API Key", type="password")
+polygon_api_key = st.secrets["POLYGON_API_KEY"]
 
 @st.cache_data
 def fetch_data(ticker):
@@ -29,13 +27,16 @@ def fetch_data(ticker):
     if df.empty:
         return None
     df.dropna(inplace=True)
-    df['SMA50'] = SMAIndicator(df['Close'], 50).sma_indicator()
-    df['RSI'] = RSIIndicator(df['Close']).rsi()
-    macd = MACD(df['Close'])
+
+    close = df['Close']
+    df['SMA50'] = SMAIndicator(close=close, window=50).sma_indicator()
+    df['RSI'] = RSIIndicator(close=close).rsi()
+    macd = MACD(close=close)
     df['MACD'] = macd.macd()
-    bb = BollingerBands(df['Close'])
+    bb = BollingerBands(close=close)
     df['bb_upper'] = bb.bollinger_hband()
     df['bb_lower'] = bb.bollinger_lband()
+
     return df
 
 summary = []
