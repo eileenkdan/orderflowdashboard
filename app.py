@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import yfinance as yf
@@ -8,13 +9,11 @@ from ta.momentum import RSIIndicator
 from utils.finviz_data import get_finviz_stats
 from utils.polygon_data import get_polygon_price
 
-# Tickers to screen
 TICKERS = ["AAPL", "MSFT", "GOOGL", "TSLA", "NVDA", "RIVN", "FSLR", "HIMS", "BABA"]
 
 st.set_page_config(layout="wide")
 st.title("📊 Enhanced AI Stock Screener")
 
-# Sidebar filters
 st.sidebar.header("🔍 Screener Filters")
 min_pe = st.sidebar.slider("Max P/E", 1, 100, 40)
 min_rsi = st.sidebar.slider("Min RSI", 0, 100, 30)
@@ -24,19 +23,17 @@ polygon_api_key = st.secrets["POLYGON_API_KEY"]
 @st.cache_data
 def fetch_data(ticker):
     df = yf.download(ticker, period="6mo", interval="1d")
-    if df.empty:
+    if df.empty or 'Close' not in df:
         return None
     df.dropna(inplace=True)
 
-    # Force 1D Series
-    close = df['Close'].copy()
+    # Explicit 1D Series extraction
+    close = pd.Series(df['Close'].values.flatten(), index=df.index)
 
     df['SMA50'] = SMAIndicator(close=close, window=50).sma_indicator()
     df['RSI'] = RSIIndicator(close=close).rsi()
-    
     macd = MACD(close=close)
     df['MACD'] = macd.macd()
-
     bb = BollingerBands(close=close)
     df['bb_upper'] = bb.bollinger_hband()
     df['bb_lower'] = bb.bollinger_lband()
