@@ -8,3 +8,5 @@ requests
 beautifulsoup4
 lxml
 polygon-api-client
+beautifulsoup4
+lxml
