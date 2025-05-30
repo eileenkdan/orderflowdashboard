@@ -28,11 +28,15 @@ def fetch_data(ticker):
         return None
     df.dropna(inplace=True)
 
-    close = df['Close']
+    # Force 1D Series
+    close = df['Close'].copy()
+
     df['SMA50'] = SMAIndicator(close=close, window=50).sma_indicator()
     df['RSI'] = RSIIndicator(close=close).rsi()
+    
     macd = MACD(close=close)
     df['MACD'] = macd.macd()
+
     bb = BollingerBands(close=close)
     df['bb_upper'] = bb.bollinger_hband()
     df['bb_lower'] = bb.bollinger_lband()
